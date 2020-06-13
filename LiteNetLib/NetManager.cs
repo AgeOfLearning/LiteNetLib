@@ -106,6 +106,8 @@ namespace LiteNetLib
 
         private readonly NetSocket _socket;
         private Thread _logicThread;
+		private static int _logicThreadCount;
+        public static int IOThreadCount { get { return _logicThreadCount; } }
 
         private readonly Queue<NetEvent> _netEventsQueue;
         private readonly Stack<NetEvent> _netEventsPool;
@@ -510,8 +512,9 @@ namespace LiteNetLib
 
         //Update function
         private void UpdateLogic()
-        {
-            var peersToRemove = new List<NetPeer>();
+		{
+			Interlocked.Increment(ref _logicThreadCount);
+			var peersToRemove = new List<NetPeer>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -575,7 +578,8 @@ namespace LiteNetLib
                     Thread.Sleep(sleepTime);
             }
             stopwatch.Stop();
-        }
+			Interlocked.Decrement(ref _logicThreadCount);
+		}
         
         void INetSocketListener.OnMessageReceived(byte[] data, int length, SocketError errorCode, IPEndPoint remoteEndPoint)
         {
@@ -1202,7 +1206,7 @@ namespace LiteNetLib
             //Stop
             _logicThread.Join();
             _logicThread = null;
-            _socket.Close();
+			_socket.Close();
 
             //clear peers
             _peersLock.EnterWriteLock();

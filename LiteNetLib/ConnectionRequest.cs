@@ -34,7 +34,7 @@ namespace LiteNetLib
 
         internal readonly long ConnectionId;
         internal readonly byte ConnectionNumber;
-        internal readonly NetPeer Peer;
+        public readonly NetPeer Peer;
 
         private bool TryActivate()
         {
